@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+npm --prefix server run typecheck || exit 1
+npm --prefix client run typecheck || exit 1
+npm --prefix server test || exit 1
+npm --prefix client test || exit 1
