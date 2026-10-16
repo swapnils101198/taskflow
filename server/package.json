@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "taskflow": "file:..",
     "zod": "^3.22.4"
   },
   "devDependencies": {
