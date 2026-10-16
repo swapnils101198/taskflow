@@ -2,7 +2,9 @@
   "name": "taskflow",
   "private": true,
   "version": "0.1.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "install:all": "npm --prefix server install && npm --prefix client install",
     "dev": "concurrently -n server,client -c blue,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
@@ -11,6 +13,7 @@
     "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.3"
   }
 }
