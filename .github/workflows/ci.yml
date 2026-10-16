@@ -12,10 +12,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm --prefix server run typecheck
-      - run: npm --prefix client run typecheck
-      - run: npm --prefix server test
-      - run: npm --prefix client test
-      - run: npm run build
+
+      - name: Install root
+        run: npm ci
+
+      - name: Install server
+        run: npm ci --prefix server
+
+      - name: Install client
+        run: npm ci --prefix client
+
+      - name: Typecheck server
+        run: npm --prefix server run typecheck
+
+      - name: Typecheck client
+        run: npm --prefix client run typecheck
+
+      - name: Test server
+        run: npm --prefix server test
+
+      - name: Test client
+        run: npm --prefix client test
+
+      - name: Build
+        run: npm run build
