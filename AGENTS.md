@@ -26,3 +26,12 @@
 - A ticket requires changing shared types across client and server
 - A ticket would delete a test
 - You are unsure which layer (domain / route / UI) a change belongs in
+
+## Working in parallel
+
+When multiple agents run at the same time, they work in separate git worktrees on separate branches. Never assume another agent's changes are visible in your worktree — they are not.
+
+- Stay inside your ticket's file scope. The ticket lists the files you are allowed to touch. If you need to edit a file outside that list, stop and ask.
+- Do not edit TICKETS.md, AGENTS.md, REVIEW.md, or COSTS.md unless the ticket explicitly says so.
+- If your branch conflicts with main at merge time, rebase on origin/main, resolve the conflict, re-run the full test suite, and re-push. Do not force-push past a conflict; resolve it.
+- If two agents edited the same file, the second PR to merge is responsible for rebasing.
