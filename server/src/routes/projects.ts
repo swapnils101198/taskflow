@@ -27,5 +27,20 @@ export function projectsRouter(c: Container): Router {
     }
   });
 
+  r.delete('/:id', (req, res) => {
+    const project = c.store.projects.get(req.params.id);
+    if (!project) {
+      res.status(404).json({ error: { code: 'PROJECT_NOT_FOUND' } });
+      return;
+    }
+    c.store.projects.delete(req.params.id);
+    for (const [taskId, task] of c.store.tasks) {
+      if (task.projectId === req.params.id) {
+        c.store.tasks.delete(taskId);
+      }
+    }
+    res.status(204).end();
+  });
+
   return r;
 }

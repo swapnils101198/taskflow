@@ -67,5 +67,15 @@ export function tasksRouter(c: Container): Router {
     }
   });
 
+  r.delete('/:id', (req, res) => {
+    const task = c.store.tasks.get(req.params.id);
+    if (!task) {
+      res.status(404).json({ error: { code: 'TASK_NOT_FOUND' } });
+      return;
+    }
+    c.store.tasks.delete(req.params.id);
+    res.status(204).end();
+  });
+
   return r;
 }
