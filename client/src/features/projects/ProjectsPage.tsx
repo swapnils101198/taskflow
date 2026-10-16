@@ -1,47 +1,88 @@
 import { useEffect, useState } from 'react';
-import { listProjects, type Project } from '../../api/client.js';
+import { listProjects, deleteProject, ApiError } from '../../api/client.js';
+import { Button } from '../../components/Button.js';
 import { Card } from '../../components/Card.js';
+import { useToast } from '../../lib/toast.js';
+import { useConfirm } from '../../lib/confirm.js';
+import { actions, useStore } from '../../lib/store.js';
+import { AddProjectForm } from './AddProjectForm.js';
 import styles from './ProjectsPage.module.css';
 
-type State =
-  | { kind: 'loading' }
-  | { kind: 'error'; message: string }
-  | { kind: 'ready'; projects: Project[] };
-
 export function ProjectsPage() {
-  const [state, setState] = useState<State>({ kind: 'loading' });
+  const projects = useStore((s) => s.projects);
+  const status = useStore((s) => s.projectsStatus);
+  const toast = useToast();
+  const confirm = useConfirm();
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
+    if (status !== 'idle') return;
+    actions.setProjectsStatus('loading');
     let cancelled = false;
     listProjects()
-      .then((projects) => {
-        if (!cancelled) setState({ kind: 'ready', projects });
+      .then((data) => {
+        if (!cancelled) actions.setProjects(data);
       })
       .catch((e: Error) => {
-        if (!cancelled) setState({ kind: 'error', message: e.message });
+        if (!cancelled) {
+          actions.setProjectsStatus('error');
+          actions.setError(e.message);
+        }
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function onDelete(id: string, name: string) {
+    const ok = await confirm({
+      title: 'Delete project',
+      message: `"${name}" and all its tasks will be removed. This cannot be undone.`,
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    setDeleting(id);
+    try {
+      await deleteProject(id);
+      actions.removeProject(id);
+      toast.push('success', `Project "${name}" deleted`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Delete failed';
+      toast.push('error', msg);
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   return (
     <Card title="Projects">
-      {state.kind === 'loading' && <Skeleton rows={3} />}
-      {state.kind === 'error' && (
+      <AddProjectForm />
+      {status === 'loading' && <Skeleton rows={3} />}
+      {status === 'error' && (
         <p role="alert" className={styles.error}>
-          {state.message}
+          Failed to load projects.
         </p>
       )}
-      {state.kind === 'ready' && state.projects.length === 0 && (
-        <p className={styles.empty}>No projects yet.</p>
+      {status === 'ready' && projects.length === 0 && (
+        <p className={styles.empty}>No projects yet. Add one above to get started.</p>
       )}
-      {state.kind === 'ready' && state.projects.length > 0 && (
+      {status === 'ready' && projects.length > 0 && (
         <ul className={styles.list}>
-          {state.projects.map((p) => (
+          {projects.map((p) => (
             <li key={p.id} className={styles.item}>
               <span className={styles.dot} aria-hidden />
               <span className={styles.name}>{p.name}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                loading={deleting === p.id}
+                onClick={() => onDelete(p.id, p.name)}
+                aria-label={`Delete project ${p.name}`}
+              >
+                Delete
+              </Button>
             </li>
           ))}
         </ul>
